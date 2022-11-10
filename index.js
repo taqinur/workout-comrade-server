@@ -11,11 +11,35 @@ app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.jvkrs5v.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
-client.connect(err => {
-  const collection = client.db("test").collection("devices");
-  // perform actions on the collection object
-  client.close();
-});
+
+
+async function run(){
+    try{
+        const serviceCollection = client.db('workoutComrade').collection('services');
+
+        app.get('/services', async(req, res) =>{
+            const query = {}
+            const cursor = serviceCollection.find(query);
+            const services = await cursor.toArray();
+            res.send(services);
+        });
+
+        app.post('/productsByIds', async(req, res) =>{
+            const ids = req.body;
+            const objectIds = ids.map(id => ObjectId(id))
+            const query = {_id: {$in: objectIds}};
+            const cursor = productCollection.find(query);
+            const products = await cursor.toArray();
+            res.send(products);
+        })
+
+    }
+    finally{
+
+    }
+} 
+run().catch(error => console.error(error));
+
 
 
 app.get ('/', (req, res) =>{
