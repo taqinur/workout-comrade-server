@@ -16,6 +16,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 async function run(){
     try{
         const serviceCollection = client.db('workoutComrade').collection('services');
+        const reviewCollection = client.db('workoutComrade').collection('reviews');
 
         app.get('/services', async(req, res) =>{
             const query = {}
@@ -24,13 +25,36 @@ async function run(){
             res.send(services);
         });
 
-        app.post('/productsByIds', async(req, res) =>{
-            const ids = req.body;
-            const objectIds = ids.map(id => ObjectId(id))
-            const query = {_id: {$in: objectIds}};
-            const cursor = productCollection.find(query);
-            const products = await cursor.toArray();
-            res.send(products);
+        app.get('/services/:id', async(req, res) =>{
+            const id = req.params.id;           
+            const query = {_id: ObjectId(id)};
+            const service = await serviceCollection.findOne(query);
+            res.send(service);
+        });
+
+        app.get('/reviews', async(req, res) =>{
+            let query = {};
+            if(req.query.email){
+                query = {
+                    email: req.query.email
+                }
+            }
+            const cursor = reviewCollection.find(query);
+            const reviews = await cursor.toArray();
+            res.send(reviews);
+        });
+        
+        app.post('/reviews', async(req, res) =>{
+            const review = req.body;
+            const result = await reviewCollection.insertOne(review);
+            res.send(result);
+        });
+
+        app.delete('/reviews/:id', async(req,res)=>{
+            const id= req.params.id;
+            const query = { _id: ObjectId(id)};
+            const result = await reviewCollection.deleteOne(query);
+            res.send(result);
         })
 
     }
